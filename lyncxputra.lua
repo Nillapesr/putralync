@@ -1,4 +1,237 @@
 -- =========================================================
+-- KEY SYSTEM (muncul pas pertama execute, key disimpan)
+-- =========================================================
+local KEY_CONFIG = {
+    Keys = { "putra123" },   -- GANTI: daftar key yang valid
+    GetKeyLink = "",                -- GANTI: link buat ambil key (Discord / Linkvertise dll)
+    SaveFile = "LychXPutra_Key.txt",
+    Banner = "rbxassetid://101774438494641",
+}
+
+local keyOk = (function()
+    local UIS = game:GetService("UserInputService")
+    local CoreGui = game:GetService("CoreGui")
+    local PlayersSvc = game:GetService("Players")
+
+    local INK    = Color3.fromRGB(10, 10, 10)
+    local PAPER  = Color3.fromRGB(233, 229, 216)
+    local WHITE  = Color3.fromRGB(255, 255, 255)
+    local YELLOW = Color3.fromRGB(255, 214, 0)
+    local RED    = Color3.fromRGB(255, 59, 24)
+    local GREEN  = Color3.fromRGB(0, 160, 70)
+    local BODY = Enum.Font.Code
+    local HEAD = Enum.Font.GothamBlack
+
+    local function trim(s)
+        s = tostring(s or "")
+        s = s:gsub("^%s+", "")
+        s = s:gsub("%s+$", "")
+        return s
+    end
+
+    local function valid(k)
+        k = trim(k)
+        if k == "" then return false end
+        for _, v in ipairs(KEY_CONFIG.Keys) do
+            if k == v then return true end
+        end
+        return false
+    end
+
+    -- key tersimpan -> langsung lolos
+    local okRead, saved = pcall(function()
+        if isfile and readfile and isfile(KEY_CONFIG.SaveFile) then
+            return readfile(KEY_CONFIG.SaveFile)
+        end
+        return nil
+    end)
+    if okRead and saved and valid(saved) then return true end
+
+    local function new(class, props)
+        local o = Instance.new(class)
+        for k, v in pairs(props or {}) do o[k] = v end
+        return o
+    end
+    local function stroke(parent, th, col)
+        return new("UIStroke", {
+            Color = col or INK, Thickness = th or 3,
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            LineJoinMode = Enum.LineJoinMode.Miter,
+            Parent = parent,
+        })
+    end
+    local function label(parent, text, size, font, color, props)
+        local l = new("TextLabel", {
+            BackgroundTransparency = 1, BorderSizePixel = 0,
+            Text = text, TextSize = size, Font = font, TextColor3 = color,
+            TextXAlignment = Enum.TextXAlignment.Left,
+        })
+        for k, v in pairs(props or {}) do l[k] = v end
+        l.Parent = parent
+        return l
+    end
+    local function getParent()
+        local ok, r = pcall(function() return gethui and gethui() end)
+        if ok and r then return r end
+        local t = Instance.new("ScreenGui")
+        local okp = pcall(function() t.Parent = CoreGui end)
+        t:Destroy()
+        if okp then return CoreGui end
+        return PlayersSvc.LocalPlayer:WaitForChild("PlayerGui")
+    end
+
+    local W, H = 340, 250
+    local gui = new("ScreenGui", {
+        Name = "BrutalKeyGate", ResetOnSpawn = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        DisplayOrder = 1000, IgnoreGuiInset = true,
+    })
+    gui.Parent = getParent()
+
+    local root = new("Frame", {
+        Size = UDim2.fromOffset(W, H),
+        Position = UDim2.new(0.5, -W / 2, 0.5, -H / 2),
+        BackgroundTransparency = 1,
+    })
+    root.Parent = gui
+    new("Frame", {
+        Size = UDim2.fromScale(1, 1), Position = UDim2.fromOffset(9, 9),
+        BackgroundColor3 = INK, BorderSizePixel = 0, ZIndex = 1, Parent = root,
+    })
+    local main = new("Frame", {
+        Size = UDim2.fromScale(1, 1), BackgroundColor3 = PAPER,
+        BorderSizePixel = 0, ZIndex = 2, ClipsDescendants = true,
+    })
+    stroke(main, 4)
+    main.Parent = root
+
+    local bar = new("Frame", {
+        Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = INK,
+        BorderSizePixel = 0, ZIndex = 3, Parent = main,
+    })
+    label(bar, "ACCESS KEY // LYCH X PUTRA", 14, HEAD, YELLOW, {
+        Size = UDim2.new(1, -50, 1, 0), Position = UDim2.fromOffset(10, 0), ZIndex = 4,
+    })
+    local closeBtn = new("TextButton", {
+        Size = UDim2.fromOffset(26, 26), Position = UDim2.new(1, -32, 0, 5),
+        BackgroundColor3 = RED, BorderSizePixel = 0, AutoButtonColor = false,
+        Font = HEAD, TextSize = 14, TextColor3 = WHITE, Text = "X", ZIndex = 4,
+    })
+    closeBtn.Parent = bar
+
+    -- gambar anime (banner)
+    local banner = new("ImageLabel", {
+        Size = UDim2.new(1, 0, 0, 70), Position = UDim2.fromOffset(0, 36),
+        BackgroundColor3 = INK, BorderSizePixel = 0,
+        Image = KEY_CONFIG.Banner, ScaleType = Enum.ScaleType.Crop, ZIndex = 3,
+    })
+    banner.Parent = main
+    new("Frame", {
+        Size = UDim2.new(1, 0, 0, 4), Position = UDim2.fromOffset(0, 106),
+        BackgroundColor3 = INK, BorderSizePixel = 0, ZIndex = 3, Parent = main,
+    })
+
+    label(main, "MASUKKAN KEY BUAT LANJUT", 12, HEAD, INK, {
+        Size = UDim2.new(1, -24, 0, 18), Position = UDim2.fromOffset(12, 116), ZIndex = 3,
+    })
+    local box = new("TextBox", {
+        Size = UDim2.new(1, -24, 0, 32), Position = UDim2.fromOffset(12, 138),
+        BackgroundColor3 = WHITE, BorderSizePixel = 0,
+        Font = BODY, TextSize = 14, TextColor3 = INK,
+        PlaceholderText = "PASTE KEY DI SINI", PlaceholderColor3 = Color3.fromRGB(120, 120, 115),
+        Text = "", ClearTextOnFocus = false, TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 3,
+    })
+    stroke(box, 3)
+    new("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = box })
+    box.Parent = main
+
+    local status = label(main, "", 11, BODY, INK, {
+        Size = UDim2.new(1, -24, 0, 16), Position = UDim2.fromOffset(12, 174), ZIndex = 3,
+    })
+
+    local checkBtn = new("TextButton", {
+        Size = UDim2.new(0.5, -17, 0, 32), Position = UDim2.fromOffset(12, 198),
+        BackgroundColor3 = RED, BorderSizePixel = 0, AutoButtonColor = false,
+        Font = HEAD, TextSize = 13, TextColor3 = WHITE, Text = "CHECK KEY", ZIndex = 3,
+    })
+    stroke(checkBtn, 3)
+    checkBtn.Parent = main
+    local getBtn = new("TextButton", {
+        Size = UDim2.new(0.5, -17, 0, 32), Position = UDim2.new(0.5, 5, 0, 198),
+        BackgroundColor3 = YELLOW, BorderSizePixel = 0, AutoButtonColor = false,
+        Font = HEAD, TextSize = 13, TextColor3 = INK, Text = "GET KEY", ZIndex = 3,
+    })
+    stroke(getBtn, 3)
+    getBtn.Parent = main
+
+    local done = Instance.new("BindableEvent")
+    local finished = false
+    local function finish(result)
+        if finished then return end
+        finished = true
+        done:Fire(result)
+    end
+
+    -- drag lewat title bar
+    local dragging, dragStart, startPos = false, nil, nil
+    local c1, c2, c3
+    bar.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; dragStart = i.Position; startPos = root.Position
+        end
+    end)
+    c1 = UIS.InputChanged:Connect(function(i)
+        if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+            local d = i.Position - dragStart
+            root.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+        end
+    end)
+    c2 = UIS.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    local function submit()
+        if valid(box.Text) then
+            status.TextColor3 = GREEN
+            status.Text = "KEY BENAR. MASUK..."
+            pcall(function()
+                if writefile then writefile(KEY_CONFIG.SaveFile, trim(box.Text)) end
+            end)
+            task.wait(0.5)
+            finish(true)
+        else
+            status.TextColor3 = RED
+            status.Text = "KEY SALAH. COBA LAGI."
+        end
+    end
+    checkBtn.MouseButton1Click:Connect(submit)
+    box.FocusLost:Connect(function(enter) if enter then submit() end end)
+    getBtn.MouseButton1Click:Connect(function()
+        if KEY_CONFIG.GetKeyLink ~= "" then
+            pcall(function() setclipboard(KEY_CONFIG.GetKeyLink) end)
+            status.TextColor3 = INK
+            status.Text = "LINK KEY DISALIN. BUKA DI BROWSER."
+        else
+            status.TextColor3 = RED
+            status.Text = "LINK KEY BELUM DIISI."
+        end
+    end)
+    closeBtn.MouseButton1Click:Connect(function() finish(false) end)
+
+    local result = done.Event:Wait()
+    pcall(function() c1:Disconnect() end)
+    pcall(function() c2:Disconnect() end)
+    pcall(function() gui:Destroy() end)
+    return result
+end)()
+
+if not keyOk then return end
+
+
+-- =========================================================
 -- ✅ DISCORD WEBHOOK + USER COUNTER (JSONBin.io)
 -- =========================================================
 
@@ -233,15 +466,15 @@ local Lib = (function()
     -- judul + deskripsi di dalam baris
     local function head(f, c, rightPad)
         local d = hasDesc(c)
-        label(f, c.Title, 13, HEAD, C.ink, {
-            Size = UDim2.new(1, -rightPad, 0, 20),
-            Position = UDim2.fromOffset(10, d and 6 or 10),
+        label(f, c.Title, 12, HEAD, C.ink, {
+            Size = UDim2.new(1, -rightPad, 0, 18),
+            Position = UDim2.fromOffset(10, d and 5 or 8),
             TextTruncate = Enum.TextTruncate.AtEnd,
         })
         if d then
-            label(f, c.Description, 11, BODY, C.grey, {
-                Size = UDim2.new(1, -rightPad, 0, 30),
-                Position = UDim2.fromOffset(10, 26),
+            label(f, c.Description, 10, BODY, C.grey, {
+                Size = UDim2.new(1, -rightPad, 0, 26),
+                Position = UDim2.fromOffset(10, 24),
                 TextWrapped = true,
                 TextYAlignment = Enum.TextYAlignment.Top,
             })
@@ -278,20 +511,20 @@ local Lib = (function()
     end
 
     function TabMT:CreateSection(c)
-        local f = self:_row(30)
+        local f = self:_row(26)
         f.BackgroundColor3 = C.yellow
-        label(f, c.Text, 14, HEAD, C.ink, {
+        label(f, c.Text, 12, HEAD, C.ink, {
             Size = UDim2.new(1, -16, 1, 0),
             Position = UDim2.fromOffset(10, 0),
         })
     end
 
     function TabMT:CreateButton(c)
-        local f = self:_row(hasDesc(c) and 62 or 40)
-        head(f, c, 90)
-        label(f, "RUN", 13, HEAD, C.yellow, {
-            Size = UDim2.fromOffset(60, 28),
-            Position = UDim2.new(1, -70, 0.5, -14),
+        local f = self:_row(hasDesc(c) and 54 or 34)
+        head(f, c, 76)
+        label(f, "RUN", 12, HEAD, C.yellow, {
+            Size = UDim2.fromOffset(50, 24),
+            Position = UDim2.new(1, -58, 0.5, -12),
             BackgroundTransparency = 0,
             BackgroundColor3 = C.ink,
             TextXAlignment = Enum.TextXAlignment.Center,
@@ -303,11 +536,11 @@ local Lib = (function()
     end
 
     function TabMT:CreateToggle(c)
-        local f = self:_row(hasDesc(c) and 62 or 40)
-        head(f, c, 90)
-        local box = label(f, "OFF", 13, HEAD, C.ink, {
-            Size = UDim2.fromOffset(60, 28),
-            Position = UDim2.new(1, -70, 0.5, -14),
+        local f = self:_row(hasDesc(c) and 54 or 34)
+        head(f, c, 76)
+        local box = label(f, "OFF", 12, HEAD, C.ink, {
+            Size = UDim2.fromOffset(50, 24),
+            Position = UDim2.new(1, -58, 0.5, -12),
             BackgroundTransparency = 0,
             BackgroundColor3 = C.white,
             TextXAlignment = Enum.TextXAlignment.Center,
@@ -335,23 +568,23 @@ local Lib = (function()
 
     function TabMT:CreateSlider(c)
         local min, max = c.Min or 0, c.Max or 100
-        local f = self:_row(66)
-        label(f, c.Title, 13, HEAD, C.ink, {
-            Size = UDim2.new(1, -90, 0, 20),
-            Position = UDim2.fromOffset(10, 8),
+        local f = self:_row(56)
+        label(f, c.Title, 12, HEAD, C.ink, {
+            Size = UDim2.new(1, -80, 0, 18),
+            Position = UDim2.fromOffset(10, 6),
             TextTruncate = Enum.TextTruncate.AtEnd,
         })
-        local valLabel = label(f, "", 13, HEAD, C.ink, {
-            Size = UDim2.fromOffset(70, 22),
-            Position = UDim2.new(1, -80, 0, 7),
+        local valLabel = label(f, "", 12, HEAD, C.ink, {
+            Size = UDim2.fromOffset(58, 20),
+            Position = UDim2.new(1, -66, 0, 5),
             BackgroundTransparency = 0,
             BackgroundColor3 = C.yellow,
             TextXAlignment = Enum.TextXAlignment.Center,
         })
         stroke(valLabel, 3)
         local track = new("Frame", {
-            Size = UDim2.new(1, -20, 0, 16),
-            Position = UDim2.fromOffset(10, 40),
+            Size = UDim2.new(1, -20, 0, 14),
+            Position = UDim2.fromOffset(10, 33),
             BackgroundColor3 = C.paper,
             BorderSizePixel = 0,
         })
@@ -418,17 +651,17 @@ local Lib = (function()
         new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Parent = box })
 
         local header = new("TextButton", {
-            Size = UDim2.new(1, 0, 0, hasDesc(c) and 62 or 40),
+            Size = UDim2.new(1, 0, 0, hasDesc(c) and 54 or 34),
             BackgroundTransparency = 1,
             Text = "",
             AutoButtonColor = false,
             LayoutOrder = 0,
         })
         header.Parent = box
-        head(header, c, 120)
-        local tag = label(header, "", 12, HEAD, C.yellow, {
-            Size = UDim2.fromOffset(100, 28),
-            Position = UDim2.new(1, -110, 0.5, -14),
+        head(header, c, 104)
+        local tag = label(header, "", 11, HEAD, C.yellow, {
+            Size = UDim2.fromOffset(88, 24),
+            Position = UDim2.new(1, -96, 0.5, -12),
             BackgroundTransparency = 0,
             BackgroundColor3 = C.ink,
             TextXAlignment = Enum.TextXAlignment.Center,
@@ -470,11 +703,11 @@ local Lib = (function()
 
         for idx, o in ipairs(opts) do
             local b = new("TextButton", {
-                Size = UDim2.new(1, 0, 0, 30),
+                Size = UDim2.new(1, 0, 0, 26),
                 BorderSizePixel = 0,
                 AutoButtonColor = false,
                 Font = BODY,
-                TextSize = 13,
+                TextSize = 12,
                 TextColor3 = C.ink,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 LayoutOrder = idx,
@@ -504,27 +737,45 @@ local Lib = (function()
     end
 
     function TabMT:CreateDiscordInvite(c)
-        local f = self:_row(108)
+        local f = self:_row(168)
         f.BackgroundColor3 = C.ink
-        label(f, c.Title, 15, HEAD, C.yellow, {
-            Size = UDim2.new(1, -24, 0, 22),
-            Position = UDim2.fromOffset(12, 8),
+        f.ClipsDescendants = true
+        if c.Banner and c.Banner ~= "" then
+            local img = new("ImageLabel", {
+                Size = UDim2.new(1, 0, 0, 70),
+                BackgroundColor3 = C.ink,
+                BorderSizePixel = 0,
+                Image = c.Banner,
+                ScaleType = Enum.ScaleType.Crop,
+            })
+            img.Parent = f
+            new("Frame", {
+                Size = UDim2.new(1, 0, 0, 3),
+                Position = UDim2.fromOffset(0, 70),
+                BackgroundColor3 = C.yellow,
+                BorderSizePixel = 0,
+                Parent = f,
+            })
+        end
+        label(f, c.Title, 13, HEAD, C.yellow, {
+            Size = UDim2.new(1, -20, 0, 20),
+            Position = UDim2.fromOffset(10, 76),
             TextTruncate = Enum.TextTruncate.AtEnd,
         })
-        label(f, c.Description, 11, BODY, C.paper, {
-            Size = UDim2.new(1, -24, 0, 34),
-            Position = UDim2.fromOffset(12, 32),
+        label(f, c.Description, 10, BODY, C.paper, {
+            Size = UDim2.new(1, -20, 0, 28),
+            Position = UDim2.fromOffset(10, 97),
             TextWrapped = true,
             TextYAlignment = Enum.TextYAlignment.Top,
         })
         local btn = new("TextButton", {
-            Size = UDim2.new(1, -24, 0, 30),
-            Position = UDim2.fromOffset(12, 70),
+            Size = UDim2.new(1, -20, 0, 28),
+            Position = UDim2.fromOffset(10, 132),
             BackgroundColor3 = C.red,
             BorderSizePixel = 0,
             AutoButtonColor = false,
             Font = HEAD,
-            TextSize = 13,
+            TextSize = 12,
             TextColor3 = C.white,
             Text = tostring(c.Button or "JOIN"),
         })
@@ -545,7 +796,7 @@ local Lib = (function()
 
     function LibObj:CreateWindow(cfg)
         cfg = cfg or {}
-        local W, H = 600, 400
+        local W, H = 500, 320
         local conns = {}
 
         local gui = new("ScreenGui", {
@@ -567,7 +818,7 @@ local Lib = (function()
         -- bayangan offset keras
         local shadow = new("Frame", {
             Size = UDim2.fromScale(1, 1),
-            Position = UDim2.fromOffset(10, 10),
+            Position = UDim2.fromOffset(8, 8),
             BackgroundColor3 = C.ink,
             BorderSizePixel = 0,
             ZIndex = 1,
@@ -583,48 +834,60 @@ local Lib = (function()
         })
         stroke(main, 4)
         main.Parent = root
+        if cfg.BackgroundImage and cfg.BackgroundImage ~= "" then
+            local bg = new("ImageLabel", {
+                Size = UDim2.fromScale(1, 1),
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                Image = cfg.BackgroundImage,
+                ImageTransparency = cfg.BackgroundTransparency or 0.8,
+                ScaleType = Enum.ScaleType.Crop,
+                ZIndex = 2,
+            })
+            bg.Parent = main
+        end
 
         -- title bar
         local bar = new("Frame", {
-            Size = UDim2.new(1, 0, 0, 48),
+            Size = UDim2.new(1, 0, 0, 40),
             BackgroundColor3 = C.ink,
             BorderSizePixel = 0,
             ZIndex = 3,
         })
         bar.Parent = main
-        label(bar, cfg.Title or "HUB", 17, HEAD, C.yellow, {
-            Size = UDim2.new(1, -110, 0, 24),
-            Position = UDim2.fromOffset(12, 4),
+        label(bar, cfg.Title or "HUB", 14, HEAD, C.yellow, {
+            Size = UDim2.new(1, -90, 0, 20),
+            Position = UDim2.fromOffset(10, 3),
             TextTruncate = Enum.TextTruncate.AtEnd,
             ZIndex = 4,
         })
-        label(bar, cfg.Subtitle or "", 11, BODY, C.paper, {
-            Size = UDim2.new(1, -110, 0, 16),
-            Position = UDim2.fromOffset(12, 28),
+        label(bar, cfg.Subtitle or "", 10, BODY, C.paper, {
+            Size = UDim2.new(1, -90, 0, 14),
+            Position = UDim2.fromOffset(10, 23),
             ZIndex = 4,
         })
 
         local minBtn = new("TextButton", {
-            Size = UDim2.fromOffset(32, 32),
-            Position = UDim2.new(1, -78, 0, 8),
+            Size = UDim2.fromOffset(26, 26),
+            Position = UDim2.new(1, -62, 0, 7),
             BackgroundColor3 = C.yellow,
             BorderSizePixel = 0,
             AutoButtonColor = false,
             Font = HEAD,
-            TextSize = 16,
+            TextSize = 14,
             TextColor3 = C.ink,
             Text = "_",
             ZIndex = 4,
         })
         minBtn.Parent = bar
         local closeBtn = new("TextButton", {
-            Size = UDim2.fromOffset(32, 32),
-            Position = UDim2.new(1, -40, 0, 8),
+            Size = UDim2.fromOffset(26, 26),
+            Position = UDim2.new(1, -32, 0, 7),
             BackgroundColor3 = C.red,
             BorderSizePixel = 0,
             AutoButtonColor = false,
             Font = HEAD,
-            TextSize = 16,
+            TextSize = 14,
             TextColor3 = C.white,
             Text = "X",
             ZIndex = 4,
@@ -633,15 +896,15 @@ local Lib = (function()
 
         -- body
         local body = new("Frame", {
-            Size = UDim2.new(1, 0, 1, -48),
-            Position = UDim2.fromOffset(0, 48),
+            Size = UDim2.new(1, 0, 1, -40),
+            Position = UDim2.fromOffset(0, 40),
             BackgroundTransparency = 1,
             ZIndex = 3,
         })
         body.Parent = main
 
         local sidebar = new("Frame", {
-            Size = UDim2.new(0, 152, 1, 0),
+            Size = UDim2.new(0, 120, 1, 0),
             BackgroundColor3 = C.yellow,
             BorderSizePixel = 0,
             ZIndex = 3,
@@ -649,7 +912,7 @@ local Lib = (function()
         sidebar.Parent = body
         local divider = new("Frame", {
             Size = UDim2.new(0, 4, 1, 0),
-            Position = UDim2.fromOffset(152, 0),
+            Position = UDim2.fromOffset(120, 0),
             BackgroundColor3 = C.ink,
             BorderSizePixel = 0,
             ZIndex = 3,
@@ -666,16 +929,16 @@ local Lib = (function()
             ZIndex = 3,
         })
         sideList.Parent = sidebar
-        new("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = sideList })
+        new("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = sideList })
         new("UIPadding", {
-            PaddingTop = UDim.new(0, 10), PaddingLeft = UDim.new(0, 10),
-            PaddingRight = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10),
+            PaddingTop = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8),
+            PaddingRight = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8),
             Parent = sideList,
         })
 
         local content = new("Frame", {
-            Size = UDim2.new(1, -160, 1, 0),
-            Position = UDim2.fromOffset(160, 0),
+            Size = UDim2.new(1, -128, 1, 0),
+            Position = UDim2.fromOffset(128, 0),
             BackgroundTransparency = 1,
             ZIndex = 3,
         })
@@ -707,20 +970,20 @@ local Lib = (function()
         minBtn.MouseButton1Click:Connect(function()
             collapsed = not collapsed
             body.Visible = not collapsed
-            root.Size = collapsed and UDim2.fromOffset(W, 48) or UDim2.fromOffset(W, H)
+            root.Size = collapsed and UDim2.fromOffset(W, 40) or UDim2.fromOffset(W, H)
             minBtn.Text = collapsed and "+" or "_"
         end)
         closeBtn.MouseButton1Click:Connect(function() root.Visible = false end)
 
         -- tombol melayang (kotak)
         local float = new("TextButton", {
-            Size = UDim2.fromOffset(52, 52),
-            Position = UDim2.new(0, 14, 0.5, -26),
+            Size = UDim2.fromOffset(42, 42),
+            Position = UDim2.new(0, 12, 0.5, -21),
             BackgroundColor3 = C.yellow,
             BorderSizePixel = 0,
             AutoButtonColor = false,
             Font = HEAD,
-            TextSize = 18,
+            TextSize = 14,
             TextColor3 = C.ink,
             Text = "[#]",
             ZIndex = 10,
@@ -745,7 +1008,7 @@ local Lib = (function()
 
         function Win:CreateTab(c)
             local btn = new("TextButton", {
-                Size = UDim2.new(1, 0, 0, 54),
+                Size = UDim2.new(1, 0, 0, 44),
                 BackgroundColor3 = C.white,
                 BorderSizePixel = 0,
                 AutoButtonColor = false,
@@ -755,14 +1018,14 @@ local Lib = (function()
             })
             stroke(btn, 3)
             btn.Parent = sideList
-            local t1 = label(btn, c.Title, 15, HEAD, C.ink, {
-                Size = UDim2.new(1, -12, 0, 22),
-                Position = UDim2.fromOffset(10, 7),
+            local t1 = label(btn, c.Title, 13, HEAD, C.ink, {
+                Size = UDim2.new(1, -10, 0, 20),
+                Position = UDim2.fromOffset(8, 5),
                 ZIndex = 5,
             })
-            local t2 = label(btn, c.Subtitle or "", 10, BODY, C.grey, {
-                Size = UDim2.new(1, -12, 0, 16),
-                Position = UDim2.fromOffset(10, 30),
+            local t2 = label(btn, c.Subtitle or "", 9, BODY, C.grey, {
+                Size = UDim2.new(1, -10, 0, 14),
+                Position = UDim2.fromOffset(8, 25),
                 ZIndex = 5,
             })
 
@@ -778,10 +1041,10 @@ local Lib = (function()
                 ZIndex = 3,
             })
             page.Parent = content
-            new("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = page })
+            new("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = page })
             new("UIPadding", {
-                PaddingTop = UDim.new(0, 10), PaddingLeft = UDim.new(0, 10),
-                PaddingRight = UDim.new(0, 16), PaddingBottom = UDim.new(0, 14),
+                PaddingTop = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8),
+                PaddingRight = UDim.new(0, 14), PaddingBottom = UDim.new(0, 10),
                 Parent = page,
             })
 
@@ -806,6 +1069,8 @@ end)()
 local Window = Lib:CreateWindow({
     Title = "LYCH X PUTRA HUB // V1",
     Subtitle = "STEAL AN EGG / NO MERCY",
+    BackgroundImage = "rbxassetid://136182100085563",
+    BackgroundTransparency = 0.8,
 })
 
 -- =========================================================
